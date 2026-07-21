@@ -288,6 +288,31 @@
   </section>
 </div>
 
+<!-- PROFILE -->
+<div class="view" id="view-profile">
+  <div class="page-head">
+    <div class="wrap">
+      <div class="crumbs"><a onclick="go('home')">Главная</a> <span>›</span> <span>Профиль</span></div>
+      <div class="page-head-row">
+        <div class="avatar" id="p-avatar" style="width:72px;height:72px;font-size:26px;"></div>
+        <div style="flex:1;min-width:200px;">
+          <h1 id="p-username" style="font-size:clamp(24px,3.5vw,36px);"></h1>
+          <div class="facts" id="p-joined"></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" id="p-follow-btn" style="display:none;" onclick="toggleFollow()"></button>
+          <button class="btn btn-ghost btn-sm" id="p-logout-btn" style="display:none;" onclick="logout();go('home')">Выйти из аккаунта</button>
+        </div>
+      </div>
+      <div class="thread-sub" id="p-stats" style="margin-top:20px;"></div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="cat-tabs" id="p-tabs" style="margin-top:32px;"></div>
+    <div class="threads" id="p-content" style="padding-bottom:80px;"></div>
+  </div>
+</div>
+
 <footer>
   <a class="logo" onclick="go('home')"><span class="logo-mark">→</span>Переезд</a>
   <div>© 2026 Переезд. Сообщество взаимопомощи.</div>
@@ -366,17 +391,38 @@
 
 <!-- NEW HOUSING MODAL -->
 <div class="modal-bg" id="housing-modal">
-  <div class="modal">
+  <div class="modal" style="max-width:480px;">
     <button class="modal-close" onclick="closeModal('housing-modal')">✕</button>
     <h3>Разместить жильё</h3>
-    <p class="sub">Объявление увидят все участники форума.</p>
+    <p class="sub">Заполните как можно подробнее — такие объявления находят жильцов быстрее.</p>
     <div class="field">
       <label>Страна</label>
       <select id="nh-country"></select>
     </div>
     <div class="field">
-      <label>Заголовок (город, район, тип)</label>
-      <input id="nh-title" placeholder="Тбилиси, Сабуртало · 1-к, 42 м²" maxlength="120">
+      <label>Город</label>
+      <input id="nh-city" placeholder="Тбилиси" maxlength="60">
+    </div>
+    <div class="field">
+      <label>Заголовок</label>
+      <input id="nh-title" placeholder="Уютная квартира у метро Сабуртало" maxlength="120">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+      <div class="field">
+        <label>Комнат</label>
+        <select id="nh-rooms">
+          <option>Студия</option><option>1</option><option>2</option>
+          <option>3</option><option>4+</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Площадь, м²</label>
+        <input id="nh-area" placeholder="42" maxlength="10">
+      </div>
+      <div class="field">
+        <label>Этаж</label>
+        <input id="nh-floor" placeholder="5/9" maxlength="10">
+      </div>
     </div>
     <div class="field">
       <label>Цена</label>
@@ -384,10 +430,36 @@
     </div>
     <div class="field">
       <label>Описание</label>
-      <textarea id="nh-desc" rows="4" placeholder="Условия, срок, контакт для связи…" maxlength="2000"></textarea>
+      <textarea id="nh-desc" rows="4" placeholder="Мебель, техника, условия, срок аренды, депозит…" maxlength="2000"></textarea>
+    </div>
+    <div class="field">
+      <label>Контакт для связи</label>
+      <input id="nh-contact" placeholder="Telegram: @username" maxlength="200">
+    </div>
+    <div class="field">
+      <label>Фотографии (до 5 штук)</label>
+      <input id="nh-photos" type="file" accept="image/*" multiple
+        style="border:1px dashed var(--line);border-radius:12px;padding:14px;width:100%;font-size:13px;cursor:pointer;">
+      <div id="nh-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"></div>
     </div>
     <div class="err" id="nh-err"></div>
     <button class="btn btn-primary" id="nh-btn" onclick="submitHousing()">Опубликовать</button>
+  </div>
+</div>
+
+<!-- HOUSING DETAIL MODAL -->
+<div class="modal-bg" id="hdetail-modal">
+  <div class="modal" style="max-width:560px;padding:0;overflow:hidden;">
+    <div id="hd-gallery"></div>
+    <div style="padding:26px 28px 30px;">
+      <button class="modal-close" onclick="closeModal('hdetail-modal')" style="margin-top:0;">✕</button>
+      <div style="font-weight:800;font-size:24px;" id="hd-price"></div>
+      <h3 style="font-size:18px;margin-top:6px;" id="hd-title"></h3>
+      <div class="thread-sub" id="hd-params" style="margin-top:12px;"></div>
+      <p id="hd-desc" style="font-size:14px;line-height:1.6;color:#2A2E36;margin-top:14px;white-space:pre-wrap;"></p>
+      <div id="hd-contact" style="margin-top:16px;background:var(--blue-soft);border-radius:12px;padding:14px 16px;font-size:14px;display:none;"></div>
+      <div class="from" id="hd-author" style="margin-top:16px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);cursor:pointer;"></div>
+    </div>
   </div>
 </div>
 
@@ -525,7 +597,7 @@ async function loadMe(){
 function renderNav(){
   const el = document.getElementById('nav-right');
   el.innerHTML = me
-    ? `<span class="nav-user" title="Выйти" onclick="logout()">
+    ? `<span class="nav-user" title="Личный кабинет" onclick="openProfile('${me.id}')">
          <span class="avatar" style="width:30px;height:30px;font-size:12px;background:${esc(me.avatar_color)}">${esc(me.username.slice(0,2).toUpperCase())}</span>
          @${esc(me.username)}</span>`
     : `<button class="nav-cta" onclick="openAuth('signup')">Присоединиться</button>`;
@@ -677,7 +749,7 @@ async function loadPosts(){
     const lk = likeMap[p.id] || { n:0, mine:false };
     const u = p.profiles || { username:'—', avatar_color:'#6E7480' };
     return `<div class="post ${i===0?'op':''}">
-      <div class="post-head">
+      <div class="post-head" style="cursor:pointer;" onclick="openProfile('${p.author_id}')">
         <div class="avatar" style="background:${esc(u.avatar_color)}">${esc(u.username.slice(0,2).toUpperCase())}</div>
         <div class="who"><b>@${esc(u.username)}</b><span>${timeAgo(p.created_at)}${i===0?' · автор темы':''}</span></div>
       </div>
@@ -715,48 +787,124 @@ async function postReply(){
 
 /* ============ HOUSING ============ */
 function openHousing(){ go('housing'); loadHousing(); }
+let housingList = [];
 async function loadHousing(){
   const el = document.getElementById('housing-grid');
   const { data, error } = await sb.from('housing')
     .select('*, profiles(username, avatar_color), countries(name, flag)')
     .order('created_at',{ascending:false}).limit(30);
   if(error){ el.innerHTML = `<div class="empty">Ошибка: ${esc(error.message)}</div>`; return; }
+  housingList = data;
   el.innerHTML = data.length
-    ? data.map((h,i)=>`
-      <div class="h-listing">
-        <div class="h-photo"><div class="g" style="background:${HOUSE_GRADS[i%HOUSE_GRADS.length]}"></div></div>
+    ? data.map((h,i)=>{
+      const photos = Array.isArray(h.photos) ? h.photos : [];
+      const cover = photos.length
+        ? `<img src="${esc(photos[0])}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
+        : `<div class="g" style="background:${HOUSE_GRADS[i%HOUSE_GRADS.length]}"></div>`;
+      const params = [h.rooms?(h.rooms==='Студия'?'Студия':h.rooms+'-к'):null, h.area?h.area+' м²':null, h.floor?h.floor+' эт.':null]
+        .filter(Boolean).join(' · ');
+      return `<div class="h-listing" style="cursor:pointer;" onclick="openHousingDetail(${h.id})">
+        <div class="h-photo" style="height:160px;">${cover}
+          ${photos.length>1?`<span style="position:absolute;bottom:10px;right:10px;background:rgba(17,19,24,.6);color:#fff;font-size:11.5px;padding:3px 9px;border-radius:100px;">📷 ${photos.length}</span>`:''}
+        </div>
         <div class="h-body">
           <div class="price">${esc(h.price)}</div>
-          <div class="addr">${h.countries?.flag||''} ${esc(h.title)}</div>
-          ${h.description?`<div class="addr">${esc(h.description)}</div>`:''}
+          <div class="addr">${h.countries?.flag||''} ${h.city?esc(h.city)+' · ':''}${esc(h.title)}</div>
+          ${params?`<div class="addr">${params}</div>`:''}
           <div class="from"><div class="avatar" style="background:${esc(h.profiles?.avatar_color||'#6E7480')}">${esc((h.profiles?.username||'—').slice(0,2).toUpperCase())}</div>@${esc(h.profiles?.username||'—')} · ${timeAgo(h.created_at)}</div>
         </div>
-      </div>`).join('')
+      </div>`;
+    }).join('')
     : `<div class="empty" style="grid-column:1/-1;">Объявлений пока нет.<br>Разместите первое!</div>`;
+}
+function openHousingDetail(id){
+  const h = housingList.find(x=>x.id===id);
+  if(!h) return;
+  const photos = Array.isArray(h.photos) ? h.photos : [];
+  const gal = document.getElementById('hd-gallery');
+  if(photos.length){
+    gal.innerHTML = `
+      <img id="hd-main" src="${esc(photos[0])}" alt="" style="width:100%;height:280px;object-fit:cover;display:block;">
+      ${photos.length>1?`<div style="display:flex;gap:6px;padding:10px 14px 0;">
+        ${photos.map((p,i)=>`<img src="${esc(p)}" alt="" onclick="document.getElementById('hd-main').src='${esc(p)}'"
+          style="width:56px;height:56px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid ${i===0?'var(--blue)':'transparent'};">`).join('')}
+      </div>`:''}`;
+  } else gal.innerHTML = '';
+  document.getElementById('hd-price').textContent = h.price;
+  document.getElementById('hd-title').textContent = (h.countries?.flag||'')+' '+(h.city?h.city+' · ':'')+h.title;
+  const params = [h.rooms?`<span class="tag">${h.rooms==='Студия'?'Студия':esc(h.rooms)+'-комн.'}</span>`:null,
+                  h.area?`<span class="tag">${esc(h.area)} м²</span>`:null,
+                  h.floor?`<span class="tag">Этаж ${esc(h.floor)}</span>`:null].filter(Boolean).join('');
+  document.getElementById('hd-params').innerHTML = params;
+  document.getElementById('hd-desc').textContent = h.description||'';
+  const contact = document.getElementById('hd-contact');
+  if(h.contact){ contact.style.display='block'; contact.innerHTML = '<b>Контакт:</b> '+esc(h.contact); }
+  else contact.style.display='none';
+  const author = document.getElementById('hd-author');
+  author.innerHTML = `<div class="avatar" style="width:26px;height:26px;font-size:10px;background:${esc(h.profiles?.avatar_color||'#6E7480')}">${esc((h.profiles?.username||'—').slice(0,2).toUpperCase())}</div>@${esc(h.profiles?.username||'—')} · ${timeAgo(h.created_at)}`;
+  author.onclick = ()=>{ closeModal('hdetail-modal'); openProfile(h.author_id); };
+  document.getElementById('hdetail-modal').classList.add('open');
 }
 function openNewHousing(){
   if(!requireAuth()) return;
   document.getElementById('nh-country').innerHTML =
     countries.map(c=>`<option value="${c.id}">${c.flag} ${esc(c.name)}</option>`).join('');
   hideErr('nh-err');
+  document.getElementById('nh-previews').innerHTML = '';
   document.getElementById('housing-modal').classList.add('open');
 }
+document.addEventListener('change', e=>{
+  if(e.target && e.target.id === 'nh-photos'){
+    const files = Array.from(e.target.files).slice(0,5);
+    document.getElementById('nh-previews').innerHTML = files.map(f=>
+      `<img src="${URL.createObjectURL(f)}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--line);">`).join('');
+  }
+});
 async function submitHousing(){
   hideErr('nh-err');
   const title = document.getElementById('nh-title').value.trim();
   const price = document.getElementById('nh-price').value.trim();
   const description = document.getElementById('nh-desc').value.trim();
   const country_id = document.getElementById('nh-country').value;
+  const city = document.getElementById('nh-city').value.trim();
+  const rooms = document.getElementById('nh-rooms').value;
+  const area = document.getElementById('nh-area').value.trim();
+  const floor = document.getElementById('nh-floor').value.trim();
+  const contact = document.getElementById('nh-contact').value.trim();
+  const files = Array.from(document.getElementById('nh-photos').files).slice(0,5);
   if(title.length < 5) return showErr('nh-err','Заголовок — минимум 5 символов.');
   if(!price) return showErr('nh-err','Укажите цену.');
+  if(!city) return showErr('nh-err','Укажите город.');
+  for(const f of files){
+    if(!f.type.startsWith('image/')) return showErr('nh-err','Можно загружать только изображения.');
+    if(f.size > 5*1024*1024) return showErr('nh-err','Каждое фото — не больше 5 МБ.');
+  }
   const btn = document.getElementById('nh-btn'); btn.disabled = true;
-  const { error } = await sb.from('housing').insert({ author_id: me.id, country_id, title, price, description });
-  btn.disabled = false;
-  if(error) return showErr('nh-err', error.message);
-  closeModal('housing-modal');
-  document.getElementById('nh-title').value=''; document.getElementById('nh-price').value=''; document.getElementById('nh-desc').value='';
-  toast('Объявление опубликовано!');
-  loadHousing();
+  btn.textContent = files.length ? 'Загружаем фото…' : 'Публикуем…';
+  try{
+    const photos = [];
+    for(let i=0;i<files.length;i++){
+      const f = files[i];
+      const ext = (f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+      const path = `${me.id}/${Date.now()}_${i}.${ext}`;
+      const { error: upErr } = await sb.storage.from('housing').upload(path, f);
+      if(upErr) throw new Error('Фото не загрузилось: '+upErr.message);
+      const { data: pub } = sb.storage.from('housing').getPublicUrl(path);
+      photos.push(pub.publicUrl);
+    }
+    const { error } = await sb.from('housing').insert({
+      author_id: me.id, country_id, title, price, description,
+      city, rooms, area, floor, contact, photos
+    });
+    if(error) throw error;
+    closeModal('housing-modal');
+    ['nh-title','nh-price','nh-desc','nh-city','nh-area','nh-floor','nh-contact'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('nh-photos').value='';
+    document.getElementById('nh-previews').innerHTML='';
+    toast('Объявление опубликовано!');
+    loadHousing();
+  } catch(e){ showErr('nh-err', e.message); }
+  finally{ btn.disabled = false; btn.textContent = 'Опубликовать'; }
 }
 
 /* ============ PASSWORD RECOVERY ============ */
@@ -778,6 +926,211 @@ async function submitNewPassword(){
   closeModal('newpass-modal');
   await loadMe();
   toast('Пароль изменён! Вы вошли в аккаунт.');
+}
+
+/* ============ ПОСТЫ ПРОФИЛЯ (как в Threads) ============ */
+async function submitProfilePost(){
+  if(!requireAuth()) return;
+  const ta = document.getElementById('profile-compose');
+  const body = ta.value.trim();
+  if(!body) return toast('Напишите что-нибудь.');
+  const btn = document.getElementById('profile-post-btn'); btn.disabled = true;
+  const { error } = await sb.from('feed_posts').insert({ author_id: me.id, body });
+  btn.disabled = false;
+  if(error) return toast('Ошибка: '+error.message);
+  ta.value = '';
+  loadProfileTab(); loadProfileStats();
+}
+async function toggleFeedLike(id, mine){
+  if(!requireAuth()) return;
+  if(mine) await sb.from('feed_likes').delete().eq('post_id', id).eq('user_id', me.id);
+  else {
+    const { error } = await sb.from('feed_likes').insert({ post_id: id, user_id: me.id });
+    if(error && error.code!=='23505') return toast('Ошибка: '+error.message);
+  }
+  loadProfileTab();
+}
+async function deleteFeedPost(id){
+  if(!confirm('Удалить пост?')) return;
+  const { error } = await sb.from('feed_posts').delete().eq('id', id);
+  if(error) return toast('Ошибка: '+error.message);
+  loadProfileTab(); loadProfileStats();
+}
+async function toggleReplies(id){
+  const box = document.getElementById('feed-replies-'+id);
+  if(!box) return;
+  if(box.style.display !== 'none'){ box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  box.innerHTML = '<div class="loading" style="padding:10px;">Загружаем…</div>';
+  const { data, error } = await sb.from('feed_posts')
+    .select('*, profiles!author_id(username, avatar_color)')
+    .eq('parent_id', id).order('created_at');
+  if(error){ box.innerHTML = `<div class="empty">Ошибка: ${esc(error.message)}</div>`; return; }
+  box.innerHTML = data.map(r=>{
+    const u = r.profiles || {username:'—', avatar_color:'#6E7480'};
+    return `<div style="border-left:2px solid var(--line);padding:10px 0 10px 16px;margin-left:8px;">
+      <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="openProfile('${r.author_id}')">
+        <div class="avatar" style="width:26px;height:26px;font-size:10px;background:${esc(u.avatar_color)}">${esc(u.username.slice(0,2).toUpperCase())}</div>
+        <b style="font-size:13px;">@${esc(u.username)}</b>
+        <span style="font-size:11.5px;color:var(--ink-2);">${timeAgo(r.created_at)}</span>
+      </div>
+      <div style="font-size:14px;margin-top:6px;white-space:pre-wrap;">${esc(r.body)}</div>
+    </div>`;
+  }).join('') + `
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <input id="feed-reply-input-${id}" placeholder="Ваш ответ…" maxlength="500"
+        style="flex:1;border:1px solid var(--line);border-radius:100px;padding:10px 16px;font-size:13.5px;outline:none;">
+      <button class="btn btn-primary btn-sm" onclick="submitFeedReply(${id})">→</button>
+    </div>`;
+}
+async function submitFeedReply(id){
+  if(!requireAuth()) return;
+  const input = document.getElementById('feed-reply-input-'+id);
+  const body = input.value.trim();
+  if(!body) return;
+  const { error } = await sb.from('feed_posts').insert({ author_id: me.id, parent_id: id, body });
+  if(error) return toast('Ошибка: '+error.message);
+  const box = document.getElementById('feed-replies-'+id);
+  box.style.display = 'none';
+  toggleReplies(id);
+}
+
+/* ============ PROFILE ============ */
+let profileUser = null, profileTab = 'Темы', iFollow = false;
+async function openProfile(userId){
+  go('profile');
+  const { data: p, error } = await sb.from('profiles').select('*').eq('id', userId).single();
+  if(error || !p){ toast('Профиль не найден.'); go('home'); return; }
+  profileUser = p; profileTab = 'Посты';
+  document.getElementById('p-avatar').style.background = p.avatar_color;
+  document.getElementById('p-avatar').textContent = p.username.slice(0,2).toUpperCase();
+  document.getElementById('p-username').textContent = '@'+p.username;
+  document.getElementById('p-joined').textContent = 'На форуме с '+new Date(p.created_at).toLocaleDateString('ru-RU');
+  const isMe = me && me.id === p.id;
+  document.getElementById('p-logout-btn').style.display = isMe ? 'inline-flex' : 'none';
+  document.getElementById('p-follow-btn').style.display = (!isMe && me) ? 'inline-flex' : 'none';
+  await Promise.all([loadProfileStats(), loadProfileTab()]);
+}
+async function loadProfileStats(){
+  const id = profileUser.id;
+  const [th, po, fr, fg, mine] = await Promise.all([
+    sb.from('threads').select('*',{count:'exact',head:true}).eq('author_id', id),
+    sb.from('posts').select('*',{count:'exact',head:true}).eq('author_id', id),
+    sb.from('follows').select('*',{count:'exact',head:true}).eq('followee_id', id),
+    sb.from('follows').select('*',{count:'exact',head:true}).eq('follower_id', id),
+    me ? sb.from('follows').select('*').eq('follower_id', me.id).eq('followee_id', id) : Promise.resolve({data:[]})
+  ]);
+  iFollow = (mine.data||[]).length > 0;
+  document.getElementById('p-stats').innerHTML =
+    `<span class="tag">Тем: ${th.count||0}</span>
+     <span class="tag">Сообщений: ${po.count||0}</span>
+     <span class="tag">Подписчиков: ${fr.count||0}</span>
+     <span class="tag">Подписок: ${fg.count||0}</span>`;
+  const btn = document.getElementById('p-follow-btn');
+  btn.textContent = iFollow ? '✓ Вы подписаны' : '+ Подписаться';
+}
+async function toggleFollow(){
+  if(!requireAuth()) return;
+  if(iFollow) await sb.from('follows').delete().eq('follower_id', me.id).eq('followee_id', profileUser.id);
+  else {
+    const { error } = await sb.from('follows').insert({ follower_id: me.id, followee_id: profileUser.id });
+    if(error && error.code !== '23505'){ toast('Ошибка: '+error.message); return; }
+  }
+  loadProfileStats();
+}
+function renderProfileTabs(){
+  document.getElementById('p-tabs').innerHTML = ['Посты','Темы','Ответы','Жильё'].map(x=>
+    `<button class="cat-tab ${x===profileTab?'active':''}" onclick="setProfileTab('${x}')">${x}</button>`).join('');
+}
+function setProfileTab(tab){ profileTab = tab; loadProfileTab(); }
+async function loadProfileTab(){
+  renderProfileTabs();
+  const el = document.getElementById('p-content');
+  el.innerHTML = '<div class="loading">Загружаем…</div>';
+  const id = profileUser.id;
+  if(profileTab === 'Посты'){
+    const isMe = me && me.id === id;
+    const [{ data, error }, { data: likes }, { data: replies }] = await Promise.all([
+      sb.from('feed_posts').select('*, profiles!author_id(username, avatar_color)')
+        .eq('author_id', id).is('parent_id', null)
+        .order('created_at',{ascending:false}).limit(50),
+      sb.from('feed_likes').select('post_id, user_id'),
+      sb.from('feed_posts').select('id, parent_id').not('parent_id','is',null)
+    ]);
+    if(error) return el.innerHTML = `<div class="empty">Ошибка: ${esc(error.message)}</div>`;
+    const likeMap = {};
+    (likes||[]).forEach(l=>{
+      likeMap[l.post_id] = likeMap[l.post_id] || {n:0, mine:false};
+      likeMap[l.post_id].n++;
+      if(me && l.user_id===me.id) likeMap[l.post_id].mine = true;
+    });
+    const replyCount = {};
+    (replies||[]).forEach(r=>{ replyCount[r.parent_id] = (replyCount[r.parent_id]||0)+1; });
+    const compose = isMe ? `
+      <div class="reply-box" style="margin-bottom:16px;">
+        <textarea id="profile-compose" placeholder="Что нового?" maxlength="500" style="min-height:64px;"></textarea>
+        <div class="row">
+          <span class="hint">До 500 символов.</span>
+          <button class="btn btn-primary btn-sm" id="profile-post-btn" onclick="submitProfilePost()">Опубликовать</button>
+        </div>
+      </div>` : '';
+    const cards = data.length ? data.map(p=>{
+      const u = p.profiles || {username:'—', avatar_color:'#6E7480'};
+      const lk = likeMap[p.id] || {n:0, mine:false};
+      const rc = replyCount[p.id] || 0;
+      return `<div class="post">
+        <div class="post-head">
+          <div class="avatar" style="background:${esc(u.avatar_color)}">${esc(u.username.slice(0,2).toUpperCase())}</div>
+          <div class="who"><b>@${esc(u.username)}</b><span>${timeAgo(p.created_at)}</span></div>
+        </div>
+        <div class="post-body">${esc(p.body)}</div>
+        <div class="post-actions">
+          <button class="${lk.mine?'liked':''}" onclick="toggleFeedLike(${p.id}, ${lk.mine})">❤ ${lk.n||''}</button>
+          <button onclick="toggleReplies(${p.id})">💬 ${rc?rc+' отв.':'Ответить'}</button>
+          ${isMe?`<button onclick="deleteFeedPost(${p.id})">🗑 Удалить</button>`:''}
+        </div>
+        <div id="feed-replies-${p.id}" style="display:none;margin-top:14px;"></div>
+      </div>`;
+    }).join('') : `<div class="empty">${isMe?'Напишите свой первый пост!':'Пока нет постов.'}</div>`;
+    el.innerHTML = compose + cards;
+  } else if(profileTab === 'Темы'){
+    const { data, error } = await sb.from('threads')
+      .select('*, profiles(username), posts(count)')
+      .eq('author_id', id).order('created_at',{ascending:false}).limit(50);
+    if(error) return el.innerHTML = `<div class="empty">Ошибка: ${esc(error.message)}</div>`;
+    el.innerHTML = data.length ? data.map(threadCard).join('')
+      : '<div class="empty">Пока нет созданных тем.</div>';
+  } else if(profileTab === 'Ответы'){
+    const { data, error } = await sb.from('posts')
+      .select('id, body, created_at, thread_id, threads(title)')
+      .eq('author_id', id).order('created_at',{ascending:false}).limit(50);
+    if(error) return el.innerHTML = `<div class="empty">Ошибка: ${esc(error.message)}</div>`;
+    el.innerHTML = data.length ? data.map(p=>`
+      <div class="thread" onclick="openThread(${p.thread_id})">
+        <div class="thread-icon">💬</div>
+        <div class="thread-body">
+          <h4>${esc(p.threads?.title||'Тема')}</h4>
+          <p>${esc(p.body.slice(0,180))}${p.body.length>180?'…':''}</p>
+          <div class="thread-meta"><span>${timeAgo(p.created_at)}</span></div>
+        </div>
+      </div>`).join('')
+      : '<div class="empty">Пока нет ответов.</div>';
+  } else {
+    const { data, error } = await sb.from('housing')
+      .select('*, countries(name, flag)')
+      .eq('author_id', id).order('created_at',{ascending:false}).limit(50);
+    if(error) return el.innerHTML = `<div class="empty">Ошибка: ${esc(error.message)}</div>`;
+    el.innerHTML = data.length ? data.map(h=>`
+      <div class="thread" style="cursor:default;">
+        <div class="thread-icon">🏠</div>
+        <div class="thread-body">
+          <h4>${h.countries?.flag||''} ${esc(h.title)} — ${esc(h.price)}</h4>
+          ${h.description?`<p>${esc(h.description)}</p>`:''}
+          <div class="thread-meta"><span>${timeAgo(h.created_at)}</span></div>
+        </div>
+      </div>`).join('')
+      : '<div class="empty">Пока нет объявлений.</div>';
+  }
 }
 
 /* ============ INIT ============ */
