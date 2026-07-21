@@ -1741,11 +1741,17 @@ document.querySelectorAll('.modal-bg').forEach(m=>{
   m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('open'); });
 });
 applyLang();
+observeReveals();
+// Страховка: если reveal-анимация не сработала (медленная сеть, ошибка) — показать всё принудительно
+setTimeout(()=>{
+  document.querySelectorAll('.view.active .reveal:not(.in)').forEach(el=>el.classList.add('in'));
+}, 600);
 (async ()=>{
-  await loadMe();
-  await loadCountries();
-  await loadHotThreads();
+  loadMe().catch(e=>console.error('loadMe:', e));
+  try{ await loadCountries(); }catch(e){ console.error('loadCountries:', e); }
+  loadHotThreads().catch(e=>console.error('loadHotThreads:', e));
   observeReveals();
+  document.querySelectorAll('.view.active .reveal:not(.in)').forEach(el=>el.classList.add('in'));
 })();
 </script>
 
