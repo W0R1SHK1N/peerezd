@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root{
     --bg:#FAFAFB; --surface:#FFFFFF; --ink:#111318; --ink-2:#6E7480;
@@ -400,8 +402,31 @@
       <select id="nh-country"></select>
     </div>
     <div class="field">
+      <label>Адрес — поставьте точку на карте</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input id="nh-search" placeholder="Найти: Тбилиси, Чавчавадзе 10…" style="flex:1;">
+        <button class="btn btn-ghost btn-sm" type="button" onclick="searchNhAddress()">Найти</button>
+      </div>
+      <div id="nh-map" style="height:220px;border-radius:12px;border:1px solid var(--line);z-index:1;"></div>
+      <div id="nh-addr-status" style="font-size:12px;color:var(--ink-2);margin-top:6px;">Кликните по карте — страна, город, улица и дом заполнятся сами.</div>
+    </div>
+    <div class="field">
       <label>Город</label>
-      <input id="nh-city" placeholder="Тбилиси" maxlength="60">
+      <input id="nh-city" placeholder="Заполнится с карты" maxlength="60">
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;">
+      <div class="field">
+        <label>Улица</label>
+        <input id="nh-street" placeholder="С карты" maxlength="120">
+      </div>
+      <div class="field">
+        <label>Дом</label>
+        <input id="nh-house" placeholder="С карты" maxlength="20">
+      </div>
+      <div class="field">
+        <label>Кв.</label>
+        <input id="nh-apartment" placeholder="12" maxlength="20">
+      </div>
     </div>
     <div class="field">
       <label>Заголовок</label>
@@ -458,6 +483,7 @@
       <div class="thread-sub" id="hd-params" style="margin-top:12px;"></div>
       <p id="hd-desc" style="font-size:14px;line-height:1.6;color:#2A2E36;margin-top:14px;white-space:pre-wrap;"></p>
       <div id="hd-contact" style="margin-top:16px;background:var(--blue-soft);border-radius:12px;padding:14px 16px;font-size:14px;display:none;"></div>
+      <div id="hd-map" style="display:none;height:180px;border-radius:12px;margin-top:16px;z-index:1;"></div>
       <div class="from" id="hd-author" style="margin-top:16px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);cursor:pointer;"></div>
     </div>
   </div>
@@ -809,7 +835,8 @@ async function loadHousing(){
         </div>
         <div class="h-body">
           <div class="price">${esc(h.price)}</div>
-          <div class="addr">${h.countries?.flag||''} ${h.city?esc(h.city)+' · ':''}${esc(h.title)}</div>
+          <div class="addr">${h.countries?.flag||''} ${h.city?esc(h.city):''}${h.street?', '+esc(h.street):''}${h.house?', '+esc(h.house):''}</div>
+          <div class="addr">${esc(h.title)}</div>
           ${params?`<div class="addr">${params}</div>`:''}
           <div class="from"><div class="avatar" style="background:${esc(h.profiles?.avatar_color||'#6E7480')}">${esc((h.profiles?.username||'—').slice(0,2).toUpperCase())}</div>@${esc(h.profiles?.username||'—')} · ${timeAgo(h.created_at)}</div>
         </div>
@@ -831,7 +858,9 @@ function openHousingDetail(id){
       </div>`:''}`;
   } else gal.innerHTML = '';
   document.getElementById('hd-price').textContent = h.price;
-  document.getElementById('hd-title').textContent = (h.countries?.flag||'')+' '+(h.city?h.city+' · ':'')+h.title;
+  const addr = [h.city, h.street, h.house].filter(Boolean).join(', ')
+    + (h.apartment?', кв. '+h.apartment:'') ;
+  document.getElementById('hd-title').textContent = (h.countries?.flag||'')+' '+h.title+(addr?' — '+addr:'');
   const params = [h.rooms?`<span class="tag">${h.rooms==='Студия'?'Студия':esc(h.rooms)+'-комн.'}</span>`:null,
                   h.area?`<span class="tag">${esc(h.area)} м²</span>`:null,
                   h.floor?`<span class="tag">Этаж ${esc(h.floor)}</span>`:null].filter(Boolean).join('');
@@ -840,11 +869,72 @@ function openHousingDetail(id){
   const contact = document.getElementById('hd-contact');
   if(h.contact){ contact.style.display='block'; contact.innerHTML = '<b>Контакт:</b> '+esc(h.contact); }
   else contact.style.display='none';
+  const mapEl = document.getElementById('hd-map');
+  if(window.hdMap){ hdMap.remove(); window.hdMap=null; }
+  if(h.lat && h.lng){
+    mapEl.style.display='block';
+    setTimeout(()=>{
+      window.hdMap = L.map('hd-map',{scrollWheelZoom:false}).setView([h.lat,h.lng],16);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(hdMap);
+      L.marker([h.lat,h.lng]).addTo(hdMap);
+    },150);
+  } else mapEl.style.display='none';
   const author = document.getElementById('hd-author');
   author.innerHTML = `<div class="avatar" style="width:26px;height:26px;font-size:10px;background:${esc(h.profiles?.avatar_color||'#6E7480')}">${esc((h.profiles?.username||'—').slice(0,2).toUpperCase())}</div>@${esc(h.profiles?.username||'—')} · ${timeAgo(h.created_at)}`;
   author.onclick = ()=>{ closeModal('hdetail-modal'); openProfile(h.author_id); };
   document.getElementById('hdetail-modal').classList.add('open');
 }
+/* ---- карта в форме объявления ---- */
+let nhMap=null, nhMarker=null, nhLat=null, nhLng=null;
+function initNhMap(){
+  if(nhMap){ setTimeout(()=>nhMap.invalidateSize(),200); return; }
+  nhMap = L.map('nh-map').setView([41.7151, 44.8271], 4);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {attribution:'© OpenStreetMap', maxZoom:19}).addTo(nhMap);
+  nhMap.on('click', e=>setNhPoint(e.latlng.lat, e.latlng.lng));
+  setTimeout(()=>nhMap.invalidateSize(),200);
+}
+async function setNhPoint(lat,lng){
+  nhLat=lat; nhLng=lng;
+  if(!nhMarker){
+    nhMarker = L.marker([lat,lng],{draggable:true}).addTo(nhMap);
+    nhMarker.on('dragend', ()=>{ const p=nhMarker.getLatLng(); setNhPoint(p.lat,p.lng); });
+  } else nhMarker.setLatLng([lat,lng]);
+  const st = document.getElementById('nh-addr-status');
+  st.textContent = 'Определяем адрес…';
+  try{
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=ru&zoom=18`);
+    const d = await r.json();
+    const a = d.address || {};
+    const cc = (a.country_code||'').toLowerCase();
+    const sel = document.getElementById('nh-country');
+    const match = [...sel.options].some(o=>o.value===cc);
+    if(match) sel.value = cc;
+    document.getElementById('nh-city').value = a.city||a.town||a.village||a.municipality||'';
+    document.getElementById('nh-street').value = a.road||'';
+    document.getElementById('nh-house').value = a.house_number||'';
+    st.textContent = match
+      ? '✓ Адрес определён. Проверьте поля и допишите квартиру и этаж.'
+      : '✓ Адрес определён, но этой страны нет в списке разделов — выберите ближайшую вручную.';
+  } catch(e){
+    st.textContent = 'Не удалось определить адрес — заполните поля вручную.';
+  }
+}
+async function searchNhAddress(){
+  const q = document.getElementById('nh-search').value.trim();
+  if(!q) return;
+  const st = document.getElementById('nh-addr-status');
+  st.textContent = 'Ищем…';
+  try{
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=ru&q=${encodeURIComponent(q)}`);
+    const d = await r.json();
+    if(!d.length){ st.textContent = 'Ничего не нашлось — попробуйте иначе или кликните по карте.'; return; }
+    const lat = parseFloat(d[0].lat), lng = parseFloat(d[0].lon);
+    nhMap.setView([lat,lng], 16);
+    setNhPoint(lat,lng);
+  } catch(e){ st.textContent = 'Ошибка поиска — кликните точку на карте вручную.'; }
+}
+
 function openNewHousing(){
   if(!requireAuth()) return;
   document.getElementById('nh-country').innerHTML =
@@ -852,6 +942,7 @@ function openNewHousing(){
   hideErr('nh-err');
   document.getElementById('nh-previews').innerHTML = '';
   document.getElementById('housing-modal').classList.add('open');
+  setTimeout(initNhMap, 100);
 }
 document.addEventListener('change', e=>{
   if(e.target && e.target.id === 'nh-photos'){
@@ -871,10 +962,13 @@ async function submitHousing(){
   const area = document.getElementById('nh-area').value.trim();
   const floor = document.getElementById('nh-floor').value.trim();
   const contact = document.getElementById('nh-contact').value.trim();
+  const street = document.getElementById('nh-street').value.trim();
+  const house = document.getElementById('nh-house').value.trim();
+  const apartment = document.getElementById('nh-apartment').value.trim();
   const files = Array.from(document.getElementById('nh-photos').files).slice(0,5);
   if(title.length < 5) return showErr('nh-err','Заголовок — минимум 5 символов.');
   if(!price) return showErr('nh-err','Укажите цену.');
-  if(!city) return showErr('nh-err','Укажите город.');
+  if(!city) return showErr('nh-err','Укажите город — поставьте точку на карте или впишите вручную.');
   for(const f of files){
     if(!f.type.startsWith('image/')) return showErr('nh-err','Можно загружать только изображения.');
     if(f.size > 5*1024*1024) return showErr('nh-err','Каждое фото — не больше 5 МБ.');
@@ -894,11 +988,14 @@ async function submitHousing(){
     }
     const { error } = await sb.from('housing').insert({
       author_id: me.id, country_id, title, price, description,
-      city, rooms, area, floor, contact, photos
+      city, rooms, area, floor, contact, photos,
+      street, house, apartment, lat: nhLat, lng: nhLng
     });
     if(error) throw error;
     closeModal('housing-modal');
-    ['nh-title','nh-price','nh-desc','nh-city','nh-area','nh-floor','nh-contact'].forEach(id=>document.getElementById(id).value='');
+    ['nh-title','nh-price','nh-desc','nh-city','nh-area','nh-floor','nh-contact','nh-street','nh-house','nh-apartment','nh-search'].forEach(id=>document.getElementById(id).value='');
+    nhLat=null; nhLng=null;
+    if(nhMarker){ nhMap.removeLayer(nhMarker); nhMarker=null; }
     document.getElementById('nh-photos').value='';
     document.getElementById('nh-previews').innerHTML='';
     toast('Объявление опубликовано!');
