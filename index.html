@@ -587,7 +587,7 @@
   <div class="modal" style="max-width:560px;padding:0;overflow:hidden;">
     <div id="hd-gallery"></div>
     <div style="padding:26px 28px 30px;">
-      <button class="modal-close" onclick="closeModal('hdetail-modal')" style="margin-top:0;">✕</button>
+      <button class="modal-close" onclick="closeHousingDetail()" style="margin-top:0;">✕</button>
       <div style="font-weight:800;font-size:24px;" id="hd-price"></div>
       <h3 style="font-size:18px;margin-top:6px;" id="hd-title"></h3>
       <div class="thread-sub" id="hd-params" style="margin-top:12px;"></div>
@@ -595,7 +595,10 @@
       <div id="hd-contact" style="margin-top:16px;background:var(--blue-soft);border-radius:12px;padding:14px 16px;font-size:14px;display:none;"></div>
       <div id="hd-map" style="display:none;height:180px;border-radius:12px;margin-top:16px;z-index:1;"></div>
       <div class="from" id="hd-author" style="margin-top:16px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);cursor:pointer;"></div>
-      <div id="hd-own-actions" style="display:none;gap:10px;margin-top:16px;flex-wrap:wrap;"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-ghost btn-sm" id="hd-share">🔗 <span data-i18n="btn_share">Скопировать ссылку</span></button>
+        <span id="hd-own-actions" style="display:none;gap:10px;flex-wrap:wrap;"></span>
+      </div>
     </div>
   </div>
 </div>
@@ -673,7 +676,7 @@ sec_security:'Безопасность',l_new_pass:'Новый пароль (н�
 btn_delete_acc:'Удалить аккаунт',email_change_sent:'Отправили письма для подтверждения смены email — проверьте обе почты.',
 pass_changed:'Пароль изменён.',pass_mismatch:'Пароли не совпадают.',
 del_c1:'Удалить аккаунт навсегда? Все ваши темы, посты и объявления будут удалены.',del_c2:'Точно? Это действие необратимо.',del_done:'Аккаунт удалён.',
-google_btn:'Войти через Google',or_div:'или'},
+google_btn:'Войти через Google',or_div:'или',btn_share:'Скопировать ссылку',link_copied:'Ссылка скопирована!',listing_404:'Объявление не найдено.'},
 en:{nav_home:'Home',nav_disc:'Discussions',nav_housing:'Housing',nav_join:'Join',
 hero_h1:'Moved abroad?<br>Others already <span class="accent">figured it out</span>',
 hero_p:'A forum for people relocating from Russia to visa-free countries. Documents, banks, passports, citizenship and housing — from those who have been there.',
@@ -719,7 +722,7 @@ sec_security:'Security',l_new_pass:'New password (optional)',l_new_pass2:'Repeat
 btn_delete_acc:'Delete account',email_change_sent:'Confirmation emails sent — check both inboxes.',
 pass_changed:'Password changed.',pass_mismatch:'Passwords do not match.',
 del_c1:'Delete your account forever? All your threads, posts and listings will be removed.',del_c2:'Are you sure? This cannot be undone.',del_done:'Account deleted.',
-google_btn:'Continue with Google',or_div:'or'},
+google_btn:'Continue with Google',or_div:'or',btn_share:'Copy link',link_copied:'Link copied!',listing_404:'Listing not found.'},
 zh:{nav_home:'首页',nav_disc:'讨论',nav_housing:'住房',nav_join:'加入',
 hero_h1:'已经出国？<br>这里有<span class="accent">现成经验</span>',
 hero_p:'为从俄罗斯移居免签国家的人打造的论坛。证件、银行、护照、国籍和住房——来自过来人的经验。',
@@ -765,7 +768,7 @@ sec_security:'安全',l_new_pass:'新密码（可选）',l_new_pass2:'重复新�
 btn_delete_acc:'删除账号',email_change_sent:'确认邮件已发送——请查收两个邮箱。',
 pass_changed:'密码已修改。',pass_mismatch:'两次密码不一致。',
 del_c1:'永久删除账号？您的所有主题、帖子和房源都将被删除。',del_c2:'确定吗？此操作不可撤销。',del_done:'账号已删除。',
-google_btn:'使用 Google 登录',or_div:'或'}
+google_btn:'使用 Google 登录',or_div:'或',btn_share:'复制链接',link_copied:'链接已复制！',listing_404:'未找到该房源。'}
 };
 
 /* переводы стран (названия и факты) */
@@ -850,6 +853,7 @@ function handleRoute(){
   const p = location.pathname.split('/').filter(Boolean);
   if(!p.length){ go('home'); return; }
   if(p[0]==='discussions') return openDiscussions();
+  if(p[0]==='housing' && p[1]) return openHousingById(parseInt(p[1]));
   if(p[0]==='housing') return openHousing();
   if(p[0]==='country' && p[1]) return openCountry(p[1]);
   if(p[0]==='thread' && p[1]) return openThread(parseInt(p[1]));
@@ -1277,9 +1281,26 @@ async function loadHousing(){
     }).join('')
     : `<div class="empty" style="grid-column:1/-1;">${t('housing_empty')}</div>`;
 }
+function closeHousingDetail(){
+  closeModal('hdetail-modal');
+  pushPath('/housing');
+}
+async function openHousingById(id){
+  go('housing');
+  await loadHousing();
+  if(!housingList.find(x=>x.id===id)){
+    const { data } = await sb.from('housing')
+      .select('*, profiles(username, avatar_color, avatar_url), countries(name, flag)')
+      .eq('id', id).single();
+    if(data) housingList.push(data);
+  }
+  if(housingList.find(x=>x.id===id)) openHousingDetail(id);
+  else toast(t('listing_404'));
+}
 function openHousingDetail(id){
   const h = housingList.find(x=>x.id===id);
   if(!h) return;
+  pushPath('/housing/'+id);
   const photos = Array.isArray(h.photos) ? h.photos : [];
   const gal = document.getElementById('hd-gallery');
   if(photos.length){
@@ -1319,11 +1340,16 @@ function openHousingDetail(id){
   const isOwner = me && me.id === h.author_id;
   const isAdm = me && me.is_admin;
   if(isOwner || isAdm){
-    own.style.display = 'flex';
+    own.style.display = 'inline-flex';
     own.innerHTML =
       (isOwner ? `<button class="btn btn-ghost btn-sm" onclick="editHousing(${h.id})">✏️</button>` : '') +
       `<button class="btn btn-ghost btn-sm" onclick="deleteHousing(${h.id})">🗑</button>`;
   } else own.style.display = 'none';
+  document.getElementById('hd-share').onclick = ()=>{
+    navigator.clipboard.writeText(location.origin+'/housing/'+h.id)
+      .then(()=>toast(t('link_copied')))
+      .catch(()=>toast(location.origin+'/housing/'+h.id));
+  };
   document.getElementById('hdetail-modal').classList.add('open');
 }
 let editingHousingId = null;
@@ -1365,7 +1391,7 @@ async function deleteHousing(id){
   if(!confirm('Удалить объявление? Это действие необратимо.')) return;
   const { error } = await sb.from('housing').delete().eq('id', id);
   if(error) return toast('Ошибка: '+error.message);
-  closeModal('hdetail-modal');
+  closeHousingDetail();
   toast('Объявление удалено.');
   loadHousing();
 }
@@ -1905,7 +1931,12 @@ async function deleteAccount(){
 
 /* ============ INIT ============ */
 document.querySelectorAll('.modal-bg').forEach(m=>{
-  m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('open'); });
+  m.addEventListener('click', e=>{
+    if(e.target===m){
+      m.classList.remove('open');
+      if(m.id==='hdetail-modal') pushPath('/housing');
+    }
+  });
 });
 applyLang();
 observeReveals();
