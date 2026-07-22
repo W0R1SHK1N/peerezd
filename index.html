@@ -394,6 +394,13 @@
     <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
     <h3 id="auth-title">Регистрация</h3>
     <p class="sub" id="auth-sub">Создайте аккаунт, чтобы писать в форуме и размещать жильё.</p>
+    <div id="auth-google">
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:16px;" onclick="signInGoogle()">
+        <img src="https://www.google.com/favicon.ico" alt="" style="width:16px;height:16px;">
+        <span data-i18n="google_btn">Войти через Google</span>
+      </button>
+      <div style="text-align:center;color:var(--ink-2);font-size:12px;margin-top:12px;" data-i18n="or_div">или</div>
+    </div>
     <div class="field" id="username-field">
       <label data-i18n="l_uname">Имя пользователя (видно всем)</label>
       <input id="auth-username" placeholder="например: lena_tbi" maxlength="30" autocomplete="username">
@@ -451,8 +458,26 @@
       <label data-i18n="ep_bio">Статус / о себе (до 200 символов)</label>
       <textarea id="ep-bio" rows="3" maxlength="200" placeholder="Например: Переехал в Тбилиси в 2025. Помогу с банками и ВНЖ. Ищу соседа в 2-к."></textarea>
     </div>
+    <div style="border-top:1px solid var(--line);margin-top:20px;padding-top:16px;">
+      <div style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);" data-i18n="sec_security">Безопасность</div>
+      <div class="field">
+        <label>Email</label>
+        <input id="ep-email" type="email" autocomplete="email">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="field">
+          <label data-i18n="l_new_pass">Новый пароль (необязательно)</label>
+          <input id="ep-pass" type="password" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label data-i18n="l_new_pass2">Повторите новый пароль</label>
+          <input id="ep-pass2" type="password" autocomplete="new-password">
+        </div>
+      </div>
+    </div>
     <div class="err" id="ep-err"></div>
     <button class="btn btn-primary" id="ep-btn" onclick="submitProfileEdit()" data-i18n="btn_save">Сохранить</button>
+    <button class="btn" style="width:100%;justify-content:center;margin-top:10px;background:transparent;border:1px solid rgba(201,59,59,.4);color:#C93B3B;" onclick="deleteAccount()">🗑 <span data-i18n="btn_delete_acc">Удалить аккаунт</span></button>
   </div>
 </div>
 
@@ -642,7 +667,12 @@ auth_s_signup:'Создайте аккаунт, чтобы писать в фо�
 auth_b_signup:'Создать аккаунт',auth_b_login:'Войти',auth_b_reset:'Отправить ссылку',
 sw_have:'Уже есть аккаунт?',sw_no:'Нет аккаунта?',sw_signup:'Зарегистрироваться',forgot:'Забыли пароль?',
 l_uname:'Имя пользователя (видно всем)',l_pass:'Пароль (минимум 6 символов)',
-housing_empty:'Объявлений пока нет.<br>Разместите первое!',disc_empty:'Пока нет обсуждений за этот период.'},
+housing_empty:'Объявлений пока нет.<br>Разместите первое!',disc_empty:'Пока нет обсуждений за этот период.',
+sec_security:'Безопасность',l_new_pass:'Новый пароль (необязательно)',l_new_pass2:'Повторите новый пароль',
+btn_delete_acc:'Удалить аккаунт',email_change_sent:'Отправили письма для подтверждения смены email — проверьте обе почты.',
+pass_changed:'Пароль изменён.',pass_mismatch:'Пароли не совпадают.',
+del_c1:'Удалить аккаунт навсегда? Все ваши темы, посты и объявления будут удалены.',del_c2:'Точно? Это действие необратимо.',del_done:'Аккаунт удалён.',
+google_btn:'Войти через Google',or_div:'или'},
 en:{nav_home:'Home',nav_disc:'Discussions',nav_housing:'Housing',nav_join:'Join',
 hero_h1:'Moved abroad?<br>Others already <span class="accent">figured it out</span>',
 hero_p:'A forum for people relocating from Russia to visa-free countries. Documents, banks, passports, citizenship and housing — from those who have been there.',
@@ -683,7 +713,12 @@ auth_s_signup:'Create an account to post and list housing.',auth_s_login:'Welcom
 auth_b_signup:'Create account',auth_b_login:'Log in',auth_b_reset:'Send link',
 sw_have:'Already have an account?',sw_no:'No account?',sw_signup:'Sign up',forgot:'Forgot password?',
 l_uname:'Username (public)',l_pass:'Password (min 6 chars)',
-housing_empty:'No listings yet.<br>Post the first one!',disc_empty:'No discussions in this period yet.'},
+housing_empty:'No listings yet.<br>Post the first one!',disc_empty:'No discussions in this period yet.',
+sec_security:'Security',l_new_pass:'New password (optional)',l_new_pass2:'Repeat new password',
+btn_delete_acc:'Delete account',email_change_sent:'Confirmation emails sent — check both inboxes.',
+pass_changed:'Password changed.',pass_mismatch:'Passwords do not match.',
+del_c1:'Delete your account forever? All your threads, posts and listings will be removed.',del_c2:'Are you sure? This cannot be undone.',del_done:'Account deleted.',
+google_btn:'Continue with Google',or_div:'or'},
 zh:{nav_home:'首页',nav_disc:'讨论',nav_housing:'住房',nav_join:'加入',
 hero_h1:'已经出国？<br>这里有<span class="accent">现成经验</span>',
 hero_p:'为从俄罗斯移居免签国家的人打造的论坛。证件、银行、护照、国籍和住房——来自过来人的经验。',
@@ -724,7 +759,12 @@ auth_s_signup:'创建账号即可发帖和发布房源。',auth_s_login:'欢迎�
 auth_b_signup:'创建账号',auth_b_login:'登录',auth_b_reset:'发送链接',
 sw_have:'已有账号？',sw_no:'没有账号？',sw_signup:'注册',forgot:'忘记密码？',
 l_uname:'用户名（公开）',l_pass:'密码（至少6位）',
-housing_empty:'暂无房源。<br>发布第一个吧！',disc_empty:'该时段暂无讨论。'}
+housing_empty:'暂无房源。<br>发布第一个吧！',disc_empty:'该时段暂无讨论。',
+sec_security:'安全',l_new_pass:'新密码（可选）',l_new_pass2:'重复新密码',
+btn_delete_acc:'删除账号',email_change_sent:'确认邮件已发送——请查收两个邮箱。',
+pass_changed:'密码已修改。',pass_mismatch:'两次密码不一致。',
+del_c1:'永久删除账号？您的所有主题、帖子和房源都将被删除。',del_c2:'确定吗？此操作不可撤销。',del_done:'账号已删除。',
+google_btn:'使用 Google 登录',or_div:'或'}
 };
 
 /* переводы стран (названия и факты) */
@@ -856,6 +896,14 @@ function setAuthMode(mode){
     ? t('sw_have')+' <a onclick="setAuthMode(\'login\')">'+t('auth_b_login')+'</a>'
     : t('sw_no')+' <a onclick="setAuthMode(\'signup\')">'+t('sw_signup')+'</a>';
   document.getElementById('auth-forgot').style.display = mode === 'login' ? 'block' : 'none';
+  document.getElementById('auth-google').style.display = reset ? 'none' : 'block';
+}
+async function signInGoogle(){
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: location.origin }
+  });
+  if(error) toast('Google: '+error.message);
 }
 async function submitAuth(){
   hideErr('auth-err');
@@ -1123,7 +1171,8 @@ async function loadPosts(){
       <div class="post-actions">
         <button class="${lk.mine?'liked':''}" onclick="toggleLike(${p.id}, ${lk.mine})">👍 Полезно${lk.n?' · '+lk.n:''}</button>
         <button onclick="document.getElementById('reply-text').focus()">↩ Ответить</button>
-        ${me&&me.id===p.author_id?`<button onclick="editForumPost(${p.id})">✏️</button><button onclick="deleteForumPost(${p.id})">🗑</button>`:''}
+        ${me&&me.id===p.author_id?`<button onclick="editForumPost(${p.id})">✏️</button>`:''}
+        ${me&&(me.id===p.author_id||me.is_admin)?`<button onclick="deleteForumPost(${p.id})">🗑</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1266,11 +1315,13 @@ function openHousingDetail(id){
   author.innerHTML = `${avatarHtml(h.profiles,26)}@${esc(h.profiles?.username||'—')} · ${timeAgo(h.created_at)}`;
   author.onclick = ()=>{ closeModal('hdetail-modal'); openProfile(h.author_id); };
   const own = document.getElementById('hd-own-actions');
-  if(me && me.id === h.author_id){
+  const isOwner = me && me.id === h.author_id;
+  const isAdm = me && me.is_admin;
+  if(isOwner || isAdm){
     own.style.display = 'flex';
-    own.innerHTML = `
-      <button class="btn btn-ghost btn-sm" onclick="editHousing(${h.id})">✏️ Редактировать</button>
-      <button class="btn btn-ghost btn-sm" onclick="deleteHousing(${h.id})">🗑 Удалить</button>`;
+    own.innerHTML =
+      (isOwner ? `<button class="btn btn-ghost btn-sm" onclick="editHousing(${h.id})">✏️</button>` : '') +
+      `<button class="btn btn-ghost btn-sm" onclick="deleteHousing(${h.id})">🗑</button>`;
   } else own.style.display = 'none';
   document.getElementById('hdetail-modal').classList.add('open');
 }
@@ -1597,7 +1648,8 @@ async function openProfile(userId){
   if(error || !p){ toast('Профиль не найден.'); openHome(); return; }
   profileUser = p; profileTab = 'Посты';
   document.getElementById('p-avatar-wrap').innerHTML = avatarHtml(p, 72);
-  document.getElementById('p-username').textContent = '@'+p.username;
+  document.getElementById('p-username').innerHTML = '@'+esc(p.username)+
+    (p.is_admin ? ' <span style="font-size:11px;background:var(--blue-soft);color:var(--blue);padding:3px 10px;border-radius:100px;vertical-align:middle;font-weight:800;letter-spacing:.05em;">ADMIN</span>' : '');
   document.getElementById('p-joined').textContent = t('p_since')+' '+new Date(p.created_at).toLocaleDateString(lang==='zh'?'zh-CN':lang==='en'?'en-GB':'ru-RU');
   document.getElementById('p-bio').textContent = p.bio || '';
   const isMe = me && me.id === p.id;
@@ -1684,7 +1736,8 @@ async function loadProfileTab(){
         <div class="post-actions">
           <button class="${lk.mine?'liked':''}" onclick="toggleFeedLike(${p.id}, ${lk.mine})">❤ ${lk.n||''}</button>
           <button onclick="toggleReplies(${p.id})">💬 ${rc?rc+' отв.':'Ответить'}</button>
-          ${isMe?`<button onclick="editFeedPost(${p.id})">✏️</button><button onclick="deleteFeedPost(${p.id})">🗑</button>`:''}
+          ${isMe?`<button onclick="editFeedPost(${p.id})">✏️</button>`:''}
+          ${(isMe||me?.is_admin)?`<button onclick="deleteFeedPost(${p.id})">🗑</button>`:''}
         </div>
         <div id="feed-replies-${p.id}" style="display:none;margin-top:14px;"></div>
       </div>`;
@@ -1731,8 +1784,16 @@ async function loadProfileTab(){
 }
 
 /* ============ EDIT PROFILE ============ */
-function openEditProfile(){
+let epCurrentEmail = '';
+async function openEditProfile(){
   if(!me) return;
+  try{
+    const { data: { user } } = await sb.auth.getUser();
+    epCurrentEmail = user?.email || '';
+  } catch(e){ epCurrentEmail = ''; }
+  document.getElementById('ep-email').value = epCurrentEmail;
+  document.getElementById('ep-pass').value = '';
+  document.getElementById('ep-pass2').value = '';
   document.getElementById('ep-username').value = me.username;
   document.getElementById('ep-bio').value = me.bio || '';
   document.getElementById('ep-avatar').value = '';
@@ -1772,12 +1833,40 @@ async function submitProfileEdit(){
       throw error;
     }
     me = { ...me, username, bio, avatar_url };
+    const newEmail = document.getElementById('ep-email').value.trim();
+    const np1 = document.getElementById('ep-pass').value;
+    const np2 = document.getElementById('ep-pass2').value;
+    if(newEmail && epCurrentEmail && newEmail !== epCurrentEmail){
+      const { error: eErr } = await sb.auth.updateUser({ email: newEmail });
+      if(eErr) throw eErr;
+      toast(t('email_change_sent'));
+    }
+    if(np1 || np2){
+      if(np1.length < 6) throw new Error(t('l_pass'));
+      if(np1 !== np2) throw new Error(t('pass_mismatch'));
+      const { error: pErr } = await sb.auth.updateUser({ password: np1 });
+      if(pErr) throw pErr;
+      toast(t('pass_changed'));
+    }
     closeModal('pedit-modal');
     renderNav();
     toast('Профиль обновлён!');
     openProfile(me.id);
   } catch(e){ showErr('ep-err', e.message); }
   finally{ btn.disabled = false; }
+}
+
+async function deleteAccount(){
+  if(!confirm(t('del_c1'))) return;
+  if(!confirm(t('del_c2'))) return;
+  const { error } = await sb.rpc('delete_my_account');
+  if(error) return toast('Ошибка: '+error.message);
+  await sb.auth.signOut();
+  me = null;
+  renderNav();
+  closeModal('pedit-modal');
+  openHome();
+  toast(t('del_done'));
 }
 
 /* ============ INIT ============ */
