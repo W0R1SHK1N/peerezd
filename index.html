@@ -173,6 +173,16 @@
   .chip:hover{transform:translateY(-2px);box-shadow:0 10px 22px -12px rgba(17,19,24,.2);}
   img.avatar{object-fit:cover;}
 
+  .gal{position:relative;border-radius:18px;overflow:hidden;background:var(--surface);border:1px solid var(--line);}
+  .gal-viewport{overflow:hidden;cursor:grab;}
+  .gal-viewport:active{cursor:grabbing;}
+  .gal-track{display:flex;transition:transform .45s var(--ease);touch-action:pan-y;}
+  .gal-track img{width:100%;flex-shrink:0;height:clamp(280px,55vh,560px);object-fit:cover;user-select:none;-webkit-user-drag:none;display:block;}
+  .gal-btn{position:absolute;top:50%;transform:translateY(-50%);left:14px;width:44px;height:44px;border-radius:50%;border:none;background:rgba(17,19,24,.55);color:#fff;font-size:26px;cursor:pointer;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:2;transition:background .25s;padding-bottom:4px;}
+  .gal-btn:hover{background:rgba(17,19,24,.82);}
+  .gal-next{left:auto;right:14px;}
+  .gal-count{position:absolute;bottom:14px;right:14px;background:rgba(17,19,24,.62);color:#fff;font-size:12.5px;font-weight:600;padding:5px 13px;border-radius:100px;z-index:2;}
+
   [data-theme="dark"]{
     --bg:#101215; --surface:#191C21; --ink:#F2F4F6; --ink-2:#9AA3AD;
     --line:#2A2F36; --blue:#5B8CFF; --blue-soft:rgba(91,140,255,.13);
@@ -582,23 +592,26 @@
   </div>
 </div>
 
-<!-- HOUSING DETAIL MODAL -->
-<div class="modal-bg" id="hdetail-modal">
-  <div class="modal" style="max-width:560px;padding:0;overflow:hidden;">
-    <div id="hd-gallery"></div>
-    <div style="padding:26px 28px 30px;">
-      <button class="modal-close" onclick="closeHousingDetail()" style="margin-top:0;">✕</button>
-      <div style="font-weight:800;font-size:24px;" id="hd-price"></div>
-      <h3 style="font-size:18px;margin-top:6px;" id="hd-title"></h3>
-      <div class="thread-sub" id="hd-params" style="margin-top:12px;"></div>
-      <p id="hd-desc" style="font-size:14px;line-height:1.6;color:var(--ink);margin-top:14px;white-space:pre-wrap;"></p>
-      <div id="hd-contact" style="margin-top:16px;background:var(--blue-soft);border-radius:12px;padding:14px 16px;font-size:14px;display:none;"></div>
-      <div id="hd-map" style="display:none;height:180px;border-radius:12px;margin-top:16px;z-index:1;"></div>
-      <div class="from" id="hd-author" style="margin-top:16px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);cursor:pointer;"></div>
-      <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center;">
-        <button class="btn btn-ghost btn-sm" id="hd-share">🔗 <span data-i18n="btn_share">Скопировать ссылку</span></button>
-        <span id="hd-own-actions" style="display:none;gap:10px;flex-wrap:wrap;"></span>
-      </div>
+<!-- LISTING PAGE (объявление на весь экран) -->
+<div class="view" id="view-listing">
+  <div class="thread-page" style="max-width:880px;padding-top:34px;">
+    <div class="crumbs"><a onclick="openHome()" data-i18n="crumb_home">Главная</a> <span>›</span> <a onclick="openHousing()" data-i18n="nav_housing">Жильё</a> <span>›</span> <span id="l-crumb"></span></div>
+    <div class="gal" id="gal" style="display:none;">
+      <div class="gal-viewport" id="gal-viewport"><div class="gal-track" id="gal-track"></div></div>
+      <button class="gal-btn" id="gal-prev" type="button">‹</button>
+      <button class="gal-btn gal-next" id="gal-next" type="button">›</button>
+      <div class="gal-count" id="gal-count"></div>
+    </div>
+    <div style="font-weight:800;font-size:clamp(24px,3.4vw,34px);margin-top:22px;" id="hd-price"></div>
+    <h1 style="font-size:clamp(17px,2.2vw,22px);font-weight:600;margin-top:8px;line-height:1.35;" id="hd-title"></h1>
+    <div class="thread-sub" id="hd-params" style="margin-top:14px;"></div>
+    <p id="hd-desc" style="font-size:15px;line-height:1.65;color:var(--ink);margin-top:16px;white-space:pre-wrap;"></p>
+    <div id="hd-contact" style="margin-top:18px;background:var(--blue-soft);border-radius:12px;padding:14px 16px;font-size:14px;display:none;"></div>
+    <div id="hd-map" style="display:none;height:220px;border-radius:14px;margin-top:18px;z-index:1;"></div>
+    <div class="from" id="hd-author" style="margin-top:18px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);cursor:pointer;"></div>
+    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;align-items:center;padding-bottom:70px;">
+      <button class="btn btn-ghost btn-sm" id="hd-share">🔗 <span data-i18n="btn_share">Скопировать ссылку</span></button>
+      <span id="hd-own-actions" style="display:none;gap:10px;flex-wrap:wrap;"></span>
     </div>
   </div>
 </div>
@@ -862,7 +875,7 @@ function handleRoute(){
 }
 window.addEventListener('popstate', ()=>{ suppressPush = true; try{ handleRoute(); } finally { suppressPush = false; } });
 function highlightNav(view){
-  const map = {home:'nav-l-home', country:'nav-l-home', discussions:'nav-l-disc', thread:'nav-l-disc', housing:'nav-l-housing'};
+  const map = {home:'nav-l-home', country:'nav-l-home', discussions:'nav-l-disc', thread:'nav-l-disc', housing:'nav-l-housing', listing:'nav-l-housing'};
   document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
   const id = map[view];
   if(id){ const el = document.getElementById(id); if(el) el.classList.add('active'); }
@@ -1281,12 +1294,8 @@ async function loadHousing(){
     }).join('')
     : `<div class="empty" style="grid-column:1/-1;">${t('housing_empty')}</div>`;
 }
-function closeHousingDetail(){
-  closeModal('hdetail-modal');
-  pushPath('/housing');
-}
+function closeHousingDetail(){ openHousing(); }
 async function openHousingById(id){
-  go('housing');
   await loadHousing();
   if(!housingList.find(x=>x.id===id)){
     const { data } = await sb.from('housing')
@@ -1297,20 +1306,35 @@ async function openHousingById(id){
   if(housingList.find(x=>x.id===id)) openHousingDetail(id);
   else toast(t('listing_404'));
 }
+let galPhotos = [], galIdx = 0;
+function galRender(){
+  document.getElementById('gal-track').style.transform = `translateX(-${galIdx*100}%)`;
+  document.getElementById('gal-count').textContent = (galIdx+1)+' / '+galPhotos.length;
+}
+function galGo(d){
+  if(galPhotos.length < 2) return;
+  galIdx = (galIdx + d + galPhotos.length) % galPhotos.length;
+  galRender();
+}
 function openHousingDetail(id){
   const h = housingList.find(x=>x.id===id);
   if(!h) return;
   pushPath('/housing/'+id);
+  go('listing');
+  document.getElementById('l-crumb').textContent = h.title;
   const photos = Array.isArray(h.photos) ? h.photos : [];
-  const gal = document.getElementById('hd-gallery');
+  const gal = document.getElementById('gal');
+  galPhotos = photos; galIdx = 0;
   if(photos.length){
-    gal.innerHTML = `
-      <img id="hd-main" src="${esc(photos[0])}" alt="" style="width:100%;height:280px;object-fit:cover;display:block;">
-      ${photos.length>1?`<div style="display:flex;gap:6px;padding:10px 14px 0;">
-        ${photos.map((p,i)=>`<img src="${esc(p)}" alt="" onclick="document.getElementById('hd-main').src='${esc(p)}'"
-          style="width:56px;height:56px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid ${i===0?'var(--blue)':'transparent'};">`).join('')}
-      </div>`:''}`;
-  } else gal.innerHTML = '';
+    gal.style.display = 'block';
+    document.getElementById('gal-track').innerHTML =
+      photos.map(p=>`<img src="${esc(p)}" alt="" draggable="false">`).join('');
+    const multi = photos.length > 1;
+    document.getElementById('gal-prev').style.display = multi ? 'flex' : 'none';
+    document.getElementById('gal-next').style.display = multi ? 'flex' : 'none';
+    document.getElementById('gal-count').style.display = multi ? 'block' : 'none';
+    galRender();
+  } else gal.style.display = 'none';
   document.getElementById('hd-price').textContent = h.price;
   const addr = [h.city, h.street, h.house].filter(Boolean).join(', ')
     + (h.apartment?', кв. '+h.apartment:'') ;
@@ -1335,7 +1359,7 @@ function openHousingDetail(id){
   } else mapEl.style.display='none';
   const author = document.getElementById('hd-author');
   author.innerHTML = `${avatarHtml(h.profiles,26)}@${esc(h.profiles?.username||'—')} · ${timeAgo(h.created_at)}`;
-  author.onclick = ()=>{ closeModal('hdetail-modal'); openProfile(h.author_id); };
+  author.onclick = ()=>openProfile(h.author_id);
   const own = document.getElementById('hd-own-actions');
   const isOwner = me && me.id === h.author_id;
   const isAdm = me && me.is_admin;
@@ -1350,13 +1374,11 @@ function openHousingDetail(id){
       .then(()=>toast(t('link_copied')))
       .catch(()=>toast(location.origin+'/housing/'+h.id));
   };
-  document.getElementById('hdetail-modal').classList.add('open');
 }
 let editingHousingId = null;
 function editHousing(id){
   const h = housingList.find(x=>x.id===id);
   if(!h) return;
-  closeModal('hdetail-modal');
   openNewHousing();
   editingHousingId = id;
   nhOldPhotos = Array.isArray(h.photos) ? [...h.photos] : [];
@@ -1579,10 +1601,13 @@ async function submitHousing(){
     if(nhMarker){ nhMap.removeLayer(nhMarker); nhMarker=null; }
     document.getElementById('nh-photos').value='';
     document.getElementById('nh-previews').innerHTML='';
-    toast(editingHousingId ? 'Объявление обновлено!' : 'Объявление опубликовано!');
+    const wasEdit = editingHousingId;
+    toast(wasEdit ? 'Объявление обновлено!' : 'Объявление опубликовано!');
     editingHousingId = null;
     nhOldPhotos = []; nhNewFiles = [];
-    loadHousing();
+    await loadHousing();
+    if(wasEdit && document.getElementById('view-listing').classList.contains('active'))
+      openHousingDetail(wasEdit);
   } catch(e){ showErr('nh-err', e.message); }
   finally{ btn.disabled = false; btn.textContent = t('publish'); }
 }
@@ -1934,10 +1959,29 @@ document.querySelectorAll('.modal-bg').forEach(m=>{
   m.addEventListener('click', e=>{
     if(e.target===m){
       m.classList.remove('open');
-      if(m.id==='hdetail-modal') pushPath('/housing');
     }
   });
 });
+(function(){
+  const vp = document.getElementById('gal-viewport');
+  if(vp){
+    let sx = null;
+    vp.addEventListener('pointerdown', e=>{ sx = e.clientX; });
+    vp.addEventListener('pointerup', e=>{
+      if(sx === null) return;
+      const dx = e.clientX - sx; sx = null;
+      if(Math.abs(dx) > 40) galGo(dx < 0 ? 1 : -1);
+    });
+    vp.addEventListener('pointercancel', ()=>{ sx = null; });
+  }
+  document.getElementById('gal-prev').onclick = ()=>galGo(-1);
+  document.getElementById('gal-next').onclick = ()=>galGo(1);
+  document.addEventListener('keydown', e=>{
+    if(!document.getElementById('view-listing').classList.contains('active')) return;
+    if(e.key === 'ArrowLeft') galGo(-1);
+    if(e.key === 'ArrowRight') galGo(1);
+  });
+})();
 applyLang();
 observeReveals();
 // Страховка: если reveal-анимация не сработала (медленная сеть, ошибка) — показать всё принудительно
