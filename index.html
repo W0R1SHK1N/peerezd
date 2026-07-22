@@ -155,7 +155,19 @@
 
   .icon-btn{background:var(--surface);border:1px solid var(--line);border-radius:100px;width:36px;height:36px;cursor:pointer;font-size:15px;transition:transform .25s var(--ease);}
   .icon-btn:hover{transform:translateY(-1px);}
-  .lang-sel{background:var(--surface);border:1px solid var(--line);border-radius:100px;padding:8px 10px;font-size:12.5px;font-weight:600;cursor:pointer;outline:none;color:var(--ink);}
+  .lang-wrap{position:relative;}
+  .lang-btn{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:100px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--ink);transition:transform .25s var(--ease);}
+  .lang-btn:hover{transform:translateY(-1px);}
+  .lang-btn .chev{font-size:9px;color:var(--ink-2);transition:transform .25s var(--ease);}
+  .lang-wrap.open .chev{transform:rotate(180deg);}
+  .lang-menu{position:absolute;top:calc(100% + 10px);right:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 44px -16px rgba(17,19,24,.28);padding:6px;min-width:150px;display:none;z-index:80;}
+  .lang-wrap.open .lang-menu{display:block;animation:fadeUp .25s var(--ease);}
+  .lang-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--ink-2);transition:background .2s,color .2s;white-space:nowrap;}
+  .lang-item:hover{background:var(--blue-soft);color:var(--ink);}
+  .lang-item.active{color:var(--ink);}
+  .lang-item .chk{margin-left:auto;color:var(--blue);visibility:hidden;font-weight:800;}
+  .lang-item.active .chk{visibility:visible;}
+  .lang-item img{width:18px;height:auto;border-radius:3px;}
   .hero-countries{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:44px auto 0;max-width:860px;}
   .chip{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:100px;padding:10px 18px;font-size:13.5px;font-weight:600;cursor:pointer;transition:transform .25s var(--ease),box-shadow .25s var(--ease);}
   .chip:hover{transform:translateY(-2px);box-shadow:0 10px 22px -12px rgba(17,19,24,.2);}
@@ -202,17 +214,24 @@
 
 <nav>
   <div class="nav-inner">
-    <a class="logo" onclick="go('home')"><span class="logo-mark">→</span>Переезд</a>
+    <a class="logo" onclick="openHome()"><span class="logo-mark">→</span>Переезд</a>
     <div class="nav-links">
-      <a id="nav-l-home" onclick="go('home')" data-i18n="nav_home">Главная</a>
+      <a id="nav-l-home" onclick="openHome()" data-i18n="nav_home">Главная</a>
       <a id="nav-l-disc" onclick="openDiscussions()" data-i18n="nav_disc">Обсуждения</a>
       <a id="nav-l-housing" onclick="openHousing()" data-i18n="nav_housing">Жильё</a>
     </div>
     <div class="nav-right" style="gap:8px;">
       <button class="icon-btn" id="theme-btn" onclick="toggleTheme()" title="Тема">🌙</button>
-      <select id="lang-sel" class="lang-sel" onchange="setLang(this.value)">
-        <option value="ru">RU</option><option value="en">EN</option><option value="zh">中文</option>
-      </select>
+      <div class="lang-wrap" id="lang-wrap">
+        <button class="lang-btn" onclick="toggleLangMenu(event)">
+          <span id="lang-btn-label">RU</span><span class="chev">▼</span>
+        </button>
+        <div class="lang-menu">
+          <div class="lang-item" data-lang="ru" onclick="chooseLang('ru')"><img src="https://flagcdn.com/w40/ru.png" alt="">Русский<span class="chk">✓</span></div>
+          <div class="lang-item" data-lang="en" onclick="chooseLang('en')"><img src="https://flagcdn.com/w40/gb.png" alt="">English<span class="chk">✓</span></div>
+          <div class="lang-item" data-lang="zh" onclick="chooseLang('zh')"><img src="https://flagcdn.com/w40/cn.png" alt="">中文<span class="chk">✓</span></div>
+        </div>
+      </div>
       <span id="nav-right">
       <button class="nav-cta" onclick="openAuth('signup')">Присоединиться</button>
       </span>
@@ -227,7 +246,7 @@
     <p data-i18n="hero_p">Форум для тех, кто переезжает из России в безвизовые страны. Документы, банки, паспорта, гражданство и жильё — на опыте людей, которые уже прошли этот путь.</p>
     <div class="hero-ctas">
       <button class="btn btn-primary" onclick="openDiscussions()" data-i18n="hero_cta1">Открыть обсуждения</button>
-      <button class="btn btn-ghost" onclick="go('home','countries')" data-i18n="hero_cta2">Выбрать страну</button>
+      <button class="btn btn-ghost" onclick="openHome('countries')" data-i18n="hero_cta2">Выбрать страну</button>
     </div>
     <div class="hero-countries" id="hero-countries"></div>
     <div class="route">
@@ -281,7 +300,7 @@
 <div class="view" id="view-country">
   <div class="page-head">
     <div class="wrap">
-      <div class="crumbs"><a onclick="go('home')" data-i18n="crumb_home">Главная</a> <span>›</span> <span id="c-crumb"></span></div>
+      <div class="crumbs"><a onclick="openHome()" data-i18n="crumb_home">Главная</a> <span>›</span> <span id="c-crumb"></span></div>
       <div class="page-head-row">
         <div class="page-flag" id="c-flag"></div>
         <div>
@@ -302,7 +321,7 @@
 <!-- THREAD -->
 <div class="view" id="view-thread">
   <div class="thread-page">
-    <div class="crumbs"><a onclick="go('home')" data-i18n="crumb_home">Главная</a> <span>›</span> <a id="t-country-link"></a> <span>›</span> <span>Обсуждение</span></div>
+    <div class="crumbs"><a onclick="openHome()" data-i18n="crumb_home">Главная</a> <span>›</span> <a id="t-country-link"></a> <span>›</span> <span>Обсуждение</span></div>
     <h1 id="t-title"></h1>
     <div class="thread-sub" id="t-sub"></div>
     <div id="t-posts"><div class="loading" data-i18n="loading_posts">Загружаем ответы…</div></div>
@@ -339,7 +358,7 @@
 <div class="view" id="view-profile">
   <div class="page-head">
     <div class="wrap">
-      <div class="crumbs"><a onclick="go('home')" data-i18n="crumb_home">Главная</a> <span>›</span> <span data-i18n="crumb_prof">Профиль</span></div>
+      <div class="crumbs"><a onclick="openHome()" data-i18n="crumb_home">Главная</a> <span>›</span> <span data-i18n="crumb_prof">Профиль</span></div>
       <div class="page-head-row">
         <div id="p-avatar-wrap"></div>
         <div style="flex:1;min-width:200px;">
@@ -350,7 +369,7 @@
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <button class="btn btn-primary btn-sm" id="p-follow-btn" style="display:none;" onclick="toggleFollow()"></button>
           <button class="btn btn-ghost btn-sm" id="p-edit-btn" style="display:none;" onclick="openEditProfile()">✏️ <span data-i18n="btn_edit_profile">Редактировать профиль</span></button>
-          <button class="btn btn-ghost btn-sm" id="p-logout-btn" style="display:none;" onclick="logout();go('home')" data-i18n="btn_logout">Выйти из аккаунта</button>
+          <button class="btn btn-ghost btn-sm" id="p-logout-btn" style="display:none;" onclick="logout();openHome()" data-i18n="btn_logout">Выйти из аккаунта</button>
         </div>
       </div>
       <div class="thread-sub" id="p-stats" style="margin-top:20px;"></div>
@@ -363,7 +382,7 @@
 </div>
 
 <footer>
-  <a class="logo" onclick="go('home')"><span class="logo-mark">→</span>Переезд</a>
+  <a class="logo" onclick="openHome()"><span class="logo-mark">→</span>Переезд</a>
   <div data-i18n="footer_tag">© 2026 Переезд. Сообщество взаимопомощи.</div>
 </footer>
 
@@ -733,13 +752,18 @@ const catLabel = x => ({'Все':t('cat_all'),'Документы':t('cat_docs')
 let lang = localStorage.getItem('lang') || 'ru';
 const t = k => (I18N[lang]&&I18N[lang][k]) || I18N.ru[k] || k;
 function setLang(l){ lang=l; localStorage.setItem('lang',l); applyLang(); }
+function toggleLangMenu(e){ e.stopPropagation(); document.getElementById('lang-wrap').classList.toggle('open'); }
+function chooseLang(l){ setLang(l); document.getElementById('lang-wrap').classList.remove('open'); }
+document.addEventListener('click', ()=>{ const w=document.getElementById('lang-wrap'); if(w) w.classList.remove('open'); });
 function applyLang(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ el.innerHTML = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder = t(el.dataset.i18nPh); });
   if(document.getElementById('view-housing')?.classList.contains('active')) loadHousing();
   if(typeof profileUser !== 'undefined' && profileUser && document.getElementById('view-profile')?.classList.contains('active')) openProfile(profileUser.id);
   if(document.getElementById('view-discussions')?.classList.contains('active')) loadDiscussions();
-  const sel = document.getElementById('lang-sel'); if(sel) sel.value = lang;
+  const lbl = document.getElementById('lang-btn-label');
+  if(lbl) lbl.textContent = ({ru:'RU', en:'EN', zh:'中文'})[lang];
+  document.querySelectorAll('.lang-item').forEach(i=>i.classList.toggle('active', i.dataset.lang===lang));
   if(typeof countries !== 'undefined' && countries.length){
     renderCountriesGrid();
     renderHeroChips();
@@ -775,6 +799,23 @@ function toast(msg){
   t.textContent = msg; t.classList.add('show');
   clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 3200);
 }
+let suppressPush = false;
+function pushPath(p){
+  if(suppressPush) return;
+  if(location.pathname !== p) history.pushState({}, '', p);
+}
+function openHome(anchor){ pushPath('/'); go('home', anchor); }
+function handleRoute(){
+  const p = location.pathname.split('/').filter(Boolean);
+  if(!p.length){ go('home'); return; }
+  if(p[0]==='discussions') return openDiscussions();
+  if(p[0]==='housing') return openHousing();
+  if(p[0]==='country' && p[1]) return openCountry(p[1]);
+  if(p[0]==='thread' && p[1]) return openThread(parseInt(p[1]));
+  if(p[0]==='profile' && p[1]) return openProfile(p[1]);
+  go('home');
+}
+window.addEventListener('popstate', ()=>{ suppressPush = true; try{ handleRoute(); } finally { suppressPush = false; } });
 function highlightNav(view){
   const map = {home:'nav-l-home', country:'nav-l-home', discussions:'nav-l-disc', thread:'nav-l-disc', housing:'nav-l-housing'};
   document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
@@ -947,7 +988,7 @@ async function loadHotThreads(){
 
 /* ============ DISCUSSIONS (топ) ============ */
 let discFilter = 'all';
-function openDiscussions(){ go('discussions'); setDiscFilter(discFilter); }
+function openDiscussions(){ pushPath('/discussions'); go('discussions'); setDiscFilter(discFilter); }
 function setDiscFilter(f){
   discFilter = f;
   document.getElementById('disc-f-all').classList.toggle('active', f==='all');
@@ -975,6 +1016,7 @@ async function loadDiscussions(){
 function openCountry(id){
   currentCountry = countries.find(c=>c.id===id);
   if(!currentCountry) return;
+  pushPath('/country/'+id);
   currentCat = 'Все';
   document.getElementById('c-crumb').textContent = cName(currentCountry);
   document.getElementById('c-flag').innerHTML = flagImg(currentCountry.id, 56);
@@ -1038,6 +1080,7 @@ async function submitThread(){
 
 /* ============ THREAD VIEW ============ */
 async function openThread(id){
+  pushPath('/thread/'+id);
   go('thread');
   const postsEl = document.getElementById('t-posts');
   postsEl.innerHTML = `<div class="loading">${t('loading')}</div>`;
@@ -1132,7 +1175,7 @@ async function deleteForumPost(id){
     if(error) return toast('Ошибка: '+error.message);
     toast('Тема удалена.');
     loadHotThreads();
-    if(cid) openCountry(cid); else go('home');
+    if(cid) openCountry(cid); else openHome();
     return;
   }
   if(!confirm('Удалить сообщение?')) return;
@@ -1152,7 +1195,7 @@ async function saveForumPost(id){
 }
 
 /* ============ HOUSING ============ */
-function openHousing(){ go('housing'); loadHousing(); }
+function openHousing(){ pushPath('/housing'); go('housing'); loadHousing(); }
 let housingList = [];
 async function loadHousing(){
   const el = document.getElementById('housing-grid');
@@ -1548,9 +1591,10 @@ async function saveFeedPost(id){
 /* ============ PROFILE ============ */
 let profileUser = null, profileTab = 'Темы', iFollow = false;
 async function openProfile(userId){
+  pushPath('/profile/'+userId);
   go('profile');
   const { data: p, error } = await sb.from('profiles').select('*').eq('id', userId).single();
-  if(error || !p){ toast('Профиль не найден.'); go('home'); return; }
+  if(error || !p){ toast('Профиль не найден.'); openHome(); return; }
   profileUser = p; profileTab = 'Посты';
   document.getElementById('p-avatar-wrap').innerHTML = avatarHtml(p, 72);
   document.getElementById('p-username').textContent = '@'+p.username;
@@ -1752,6 +1796,8 @@ setTimeout(()=>{
   loadHotThreads().catch(e=>console.error('loadHotThreads:', e));
   observeReveals();
   document.querySelectorAll('.view.active .reveal:not(.in)').forEach(el=>el.classList.add('in'));
+  suppressPush = true;
+  try{ handleRoute(); } finally { suppressPush = false; }
 })();
 </script>
 
