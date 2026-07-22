@@ -1023,18 +1023,18 @@ function renderHeroChips(){
   if(el) el.innerHTML = countries.map(c=>
     `<span class="chip" onclick="openCountry('${c.id}')">${flagImg(c.id,20)} ${esc(cName(c))}</span>`).join('');
 }
-function threadCard(t){
-  const n = t.posts?.[0]?.count ?? 0;
-  const c = countries.find(x=>x.id===t.country_id);
-  return `<div class="thread" onclick="openThread(${t.id})">
-    <div class="thread-icon">${CAT_ICONS[t.category]||'💬'}</div>
+function threadCard(tr){
+  const n = tr.posts?.[0]?.count ?? 0;
+  const c = countries.find(x=>x.id===tr.country_id);
+  return `<div class="thread" onclick="openThread(${tr.id})">
+    <div class="thread-icon">${CAT_ICONS[tr.category]||'💬'}</div>
     <div class="thread-body">
-      <h4>${esc(t.title)}</h4>
+      <h4>${esc(tr.title)}</h4>
       <div class="thread-meta">
-        <span class="tag">${esc(catLabel(t.category))}</span>
+        <span class="tag">${esc(catLabel(tr.category))}</span>
         ${c?`<span class="tag">${flagImg(c.id,14)} ${esc(cName(c))}</span>`:''}
-        <span>@${esc(t.profiles?.username||'—')}</span>
-        <span>· ${timeAgo(t.updated_at||t.created_at)}</span>
+        <span>@${esc(tr.profiles?.username||'—')}</span>
+        <span>· ${timeAgo(tr.updated_at||tr.created_at)}</span>
       </div>
     </div>
     <div class="thread-replies"><b>${Math.max(0,n-1)}</b>${t('replies_n')}</div>
