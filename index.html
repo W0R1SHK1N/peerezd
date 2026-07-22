@@ -392,10 +392,29 @@
   </div>
 </div>
 
-<footer>
-  <a class="logo" onclick="openHome()"><span class="logo-mark">→</span>Переезд</a>
-  <div data-i18n="footer_tag">© 2026 Переезд. Сообщество взаимопомощи.</div>
-</footer>
+<!-- LISTING PAGE (объявление на весь экран) -->
+<div class="view" id="view-listing">
+  <div class="thread-page" style="max-width:880px;padding-top:34px;">
+    <div class="crumbs"><a onclick="openHome()" data-i18n="crumb_home">Главная</a> <span>›</span> <a onclick="openHousing()" data-i18n="nav_housing">Жильё</a> <span>›</span> <span id="l-crumb"></span></div>
+    <div class="gal" id="gal" style="display:none;">
+      <div class="gal-viewport" id="gal-viewport"><div class="gal-track" id="gal-track"></div></div>
+      <button class="gal-btn" id="gal-prev" type="button">‹</button>
+      <button class="gal-btn gal-next" id="gal-next" type="button">›</button>
+      <div class="gal-count" id="gal-count"></div>
+    </div>
+    <div style="font-weight:800;font-size:clamp(24px,3.4vw,34px);margin-top:22px;" id="hd-price"></div>
+    <h1 style="font-size:clamp(17px,2.2vw,22px);font-weight:600;margin-top:8px;line-height:1.35;" id="hd-title"></h1>
+    <div class="thread-sub" id="hd-params" style="margin-top:14px;"></div>
+    <p id="hd-desc" style="font-size:15px;line-height:1.65;color:var(--ink);margin-top:16px;white-space:pre-wrap;"></p>
+    <div id="hd-contact" style="margin-top:18px;background:var(--blue-soft);border-radius:12px;padding:14px 16px;font-size:14px;display:none;"></div>
+    <div id="hd-map" style="display:none;height:220px;border-radius:14px;margin-top:18px;z-index:1;"></div>
+    <div class="from" id="hd-author" style="margin-top:18px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);cursor:pointer;"></div>
+    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;align-items:center;padding-bottom:70px;">
+      <button class="btn btn-ghost btn-sm" id="hd-share">🔗 <span data-i18n="btn_share">Скопировать ссылку</span></button>
+      <span id="hd-own-actions" style="display:none;gap:10px;flex-wrap:wrap;"></span>
+    </div>
+  </div>
+</div>
 
 <!-- ADMIN PANEL -->
 <div class="view" id="view-admin">
@@ -406,6 +425,11 @@
     <div id="adm-content" class="threads" style="margin-top:14px;padding-bottom:90px;max-width:none;"></div>
   </div>
 </div>
+
+<footer>
+  <a class="logo" onclick="openHome()"><span class="logo-mark">→</span>Переезд</a>
+  <div data-i18n="footer_tag">© 2026 Переезд. Сообщество взаимопомощи.</div>
+</footer>
 
 <div class="toast" id="toast"></div>
 
@@ -600,30 +624,6 @@
     </div>
     <div class="err" id="nh-err"></div>
     <button class="btn btn-primary" id="nh-btn" onclick="submitHousing()" data-i18n="publish">Опубликовать</button>
-  </div>
-</div>
-
-<!-- LISTING PAGE (объявление на весь экран) -->
-<div class="view" id="view-listing">
-  <div class="thread-page" style="max-width:880px;padding-top:34px;">
-    <div class="crumbs"><a onclick="openHome()" data-i18n="crumb_home">Главная</a> <span>›</span> <a onclick="openHousing()" data-i18n="nav_housing">Жильё</a> <span>›</span> <span id="l-crumb"></span></div>
-    <div class="gal" id="gal" style="display:none;">
-      <div class="gal-viewport" id="gal-viewport"><div class="gal-track" id="gal-track"></div></div>
-      <button class="gal-btn" id="gal-prev" type="button">‹</button>
-      <button class="gal-btn gal-next" id="gal-next" type="button">›</button>
-      <div class="gal-count" id="gal-count"></div>
-    </div>
-    <div style="font-weight:800;font-size:clamp(24px,3.4vw,34px);margin-top:22px;" id="hd-price"></div>
-    <h1 style="font-size:clamp(17px,2.2vw,22px);font-weight:600;margin-top:8px;line-height:1.35;" id="hd-title"></h1>
-    <div class="thread-sub" id="hd-params" style="margin-top:14px;"></div>
-    <p id="hd-desc" style="font-size:15px;line-height:1.65;color:var(--ink);margin-top:16px;white-space:pre-wrap;"></p>
-    <div id="hd-contact" style="margin-top:18px;background:var(--blue-soft);border-radius:12px;padding:14px 16px;font-size:14px;display:none;"></div>
-    <div id="hd-map" style="display:none;height:220px;border-radius:14px;margin-top:18px;z-index:1;"></div>
-    <div class="from" id="hd-author" style="margin-top:18px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);cursor:pointer;"></div>
-    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;align-items:center;padding-bottom:70px;">
-      <button class="btn btn-ghost btn-sm" id="hd-share">🔗 <span data-i18n="btn_share">Скопировать ссылку</span></button>
-      <span id="hd-own-actions" style="display:none;gap:10px;flex-wrap:wrap;"></span>
-    </div>
   </div>
 </div>
 
@@ -1179,8 +1179,10 @@ async function openThread(id){
   const link = document.getElementById('t-country-link');
   link.innerHTML = flagImg(th.countries.id,16)+' '+esc(cName(th.countries));
   link.onclick = ()=>openCountry(th.countries.id);
+  const canEditTitle = me && (me.id === th.author_id || me.is_admin);
   document.getElementById('t-sub').innerHTML =
-    `<span class="tag">${esc(catLabel(th.category))}</span><span>${t('by_author')} @${esc(th.profiles?.username||'—')}</span><span>· ${timeAgo(th.created_at)}</span>`;
+    `<span class="tag">${esc(catLabel(th.category))}</span><span>${t('by_author')} @${esc(th.profiles?.username||'—')}</span><span>· ${timeAgo(th.created_at)}</span>`
+    + (canEditTitle ? `<button class="cat-tab" style="padding:5px 14px;font-size:12.5px;" onclick="editThreadTitle()">✏️</button>` : '');
   await loadPosts();
 }
 async function loadPosts(){
@@ -1210,7 +1212,7 @@ async function loadPosts(){
       <div class="post-actions">
         <button class="${lk.mine?'liked':''}" onclick="toggleLike(${p.id}, ${lk.mine})">👍 Полезно${lk.n?' · '+lk.n:''}</button>
         <button onclick="document.getElementById('reply-text').focus()">↩ Ответить</button>
-        ${me&&me.id===p.author_id?`<button onclick="editForumPost(${p.id})">✏️</button>`:''}
+        ${me&&(me.id===p.author_id||me.is_admin)?`<button onclick="editForumPost(${p.id})">✏️</button>`:''}
         ${me&&(me.id===p.author_id||me.is_admin)?`<button onclick="deleteForumPost(${p.id})">🗑</button>`:''}
       </div>
     </div>`;
@@ -1271,6 +1273,17 @@ async function deleteForumPost(id){
   if(error) return toast('Ошибка: '+error.message);
   toast('Сообщение удалено.');
   loadPosts();
+}
+async function editThreadTitle(){
+  const nt = prompt('Заголовок темы:', currentThread.title);
+  if(nt === null) return;
+  const v = nt.trim();
+  if(v.length < 5 || v.length > 200) return toast('Заголовок: 5–200 символов.');
+  const { error } = await sb.from('threads').update({ title: v }).eq('id', currentThread.id);
+  if(error) return toast('Ошибка: '+error.message);
+  currentThread.title = v;
+  document.getElementById('t-title').textContent = v;
+  toast('Заголовок обновлён.');
 }
 async function saveForumPost(id){
   const body = document.getElementById('edit-post-'+id).value.trim();
@@ -2129,11 +2142,12 @@ setTimeout(()=>{
   document.querySelectorAll('.view.active .reveal:not(.in)').forEach(el=>el.classList.add('in'));
 }, 600);
 (async ()=>{
-  loadMe().catch(e=>console.error('loadMe:', e));
+  const meReady = loadMe().catch(e=>console.error('loadMe:', e));
   try{ await loadCountries(); }catch(e){ console.error('loadCountries:', e); }
   loadHotThreads().catch(e=>console.error('loadHotThreads:', e));
   observeReveals();
   document.querySelectorAll('.view.active .reveal:not(.in)').forEach(el=>el.classList.add('in'));
+  await meReady;   // ждём профиль, чтобы права (админ/владелец) были известны до отрисовки страницы по прямой ссылке
   suppressPush = true;
   try{ handleRoute(); } finally { suppressPush = false; }
 })();
